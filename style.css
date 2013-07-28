@@ -1,0 +1,99 @@
+body {
+}
+
+div#main {
+	width: 90%;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.red {
+	color: red;
+}
+
+table.head-table { 
+	width : 100%;
+	background-color : #0B94EC; 
+	margin : 20px 0px 20px 0px;
+}
+
+table.head-table td {
+	text-align : center;
+}
+
+table.head-table * {
+	color : white;
+	text-decoration : none;
+}
+
+table.dev-table { 
+	width : 100%;
+}
+
+td.row1	{ 
+	background-color : #DEE3E7; 
+}
+
+td.row2	{ 
+	background-color : #EFEFEF; 
+	height : 25px;
+}
+
+.row_red {
+	background-color : #FF0033; 
+	text-align: center;
+	color: #FFFFFF;
+	font-weight:bold;
+}
+
+.row_green {
+	background-color : #00FF33; 
+	text-align: center;
+	color: #000000;
+	font-weight:bold;
+}
+
+div.edit {
+	background : url('img/edit.png');
+	background-size : auto 100%;
+	width : 20px;
+	height : 20px;
+	display : block;
+}
+
+div.delete {
+	background : url('img/delete.gif');
+	background-size : auto 100%;
+	width : 20px;
+	height : 20px;
+	display : block;
+}
+
+form.search_user {
+	width: 100%;
+	text-align: right;
+}
+
+form.unsuscribe_user {
+	margin: 0;
+}
+
+form.edit_email {
+	width: 100%;
+}
+
+.width_fill {
+	width: 100%;
+}
+
+.icon16 {
+	float: left;
+	width: 16px;
+	height: 16px;
+	margin: 2px;
+}
+
+.link {
+	cursor: pointer; 
+}
+
