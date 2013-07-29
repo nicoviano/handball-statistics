@@ -22,8 +22,4 @@ function db_get_rows($result) {
 	return $result->rowCount();
 }
 
-function db_users_get_id($db, $user) {
-	return -1; // stub
-}
-
 ?>

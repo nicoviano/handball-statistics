@@ -63,9 +63,9 @@ $db = db_connect(DB_TYPE, DB_HOST, DB_NAME, DB_USERNAME, DB_PASSWORD);
 if ($db == NULL) die("No se pudo conectar con la base de datos");
 db_set_charset($db, "utf8");
 
+require_once("db_betscience.php");
 $error = 0;
 $data = array();
-$html = "";
 
 switch ($var_action) {
 	case "get":
@@ -85,35 +85,52 @@ switch ($var_action) {
 		break;
 	case "register":
 		if (!isset($var_usr)) {
+			// 'usr' param is mandatory
 			$error = 2;
 		} else if (!isset($var_pwd)) {
+			// 'pwd' param is mandatory
 			$error = 3;
-		} else {
-			if (($id = db_users_get_id($var_usr)) < 0) {
-				if (devices_register($var_email, $var_address)) {
-					if (($id = devices_get_id($var_email, $var_address)) >= 0) {
-						if (devices_update($id, $var_email, $var_address, 
-							$var_brand, $var_manufacturer, $var_device, $var_model, $var_product, 
-							$var_country_code, $var_language_code)) {
-								if (devices_set_token($id, mt_rand()) && send_mail_pear($id)) {
-									$error = 0;
-								} else $error = 20;
-						} else $error = 20;
-					} else $error = 20;
-				} else $error = 20;
-			} else {
-				if (devices_update($id, $var_email, $var_address, 
-					$var_brand, $var_manufacturer, $var_device, $var_model, $var_product, 
-					$var_country_code, $var_language_code)) {
-						if (devices_set_token($id, mt_rand()) && send_mail_pear($id)) {
-							$error = 0;
-						} else $error = 20;
-				} else $error = 20;
-			}
+		} else if (db_betscience_users_get_id($db, $var_usr) >= 0) {
+			// this user already exists in the table
+			$error = 10;
+		} else if (db_betscience_users_new($db, $var_usr, $var_pwd) == false) {
+			// error inserting the user in the table
+			$error = 20;
+		} else if (db_betscience_users_get_id($db, $var_usr) < 0) {
+			// the user is not found in the table
+			$error = 20;
 		}
+				//if (devices_register($var_email, $var_address)) {
+				//	if (($id = devices_get_id($var_email, $var_address)) >= 0) {
+				//		if (devices_update($id, $var_email, $var_address, 
+				//			$var_brand, $var_manufacturer, $var_device, $var_model, $var_product, 
+				//			$var_country_code, $var_language_code)) {
+				//				if (devices_set_token($id, mt_rand()) && send_mail_pear($id)) {
+				//					$error = 0;
+				//				} else $error = 20;
+				//		} else $error = 20;
+				//	} else $error = 20;
+				//} else $error = 20;
+			//
+				//if (devices_update($id, $var_email, $var_address, 
+				//	$var_brand, $var_manufacturer, $var_device, $var_model, $var_product, 
+				//	$var_country_code, $var_language_code)) {
+				//		if (devices_set_token($id, mt_rand()) && send_mail_pear($id)) {
+				//			$error = 0;
+				//		} else $error = 20;
+				//} else $error = 20;
 		break;
 	default:
 		$error = 1;
 		break;
 }
+
+/* Write response */
+require_once("xml.php");
+xml_set_content_type();
+xml_write_header();
+xml_write_tag_start("betscience");
+xml_write_tag_value("error", $error);
+xml_write_tag_end("betscience");
+
 ?>
