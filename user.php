@@ -2,9 +2,9 @@
 /*
  * Input variables:
  *  - action: requested action, mandatory
- *    - get
  *    - register
- *  - usr: user name.
+ *    - login
+ *  - usr: username.
  *  - pwd: password.
  *
  * Returned values:
@@ -21,11 +21,12 @@
  *     2: invalid user
  *     3: invalid password
  *     10: already registered
- *     11: not registered
+ *     11: login failed. User not registered
+ *     12: login failed. Bad password
  *     20: DB error
  *
  * Available actions:
- *  - register: register device data
+ *  - register: register user
  *    * Mandatory parameters: address, email. 
  *    * Additional parameters: brand, manufacturer, device, model, product, country_code, language_code.
  *    * If device (address) already registered with email, additional data is updated and e-mail sent again.
@@ -52,6 +53,7 @@
  *    	- ErrorCode: [0, 11, 30]
  *
  */
+$DEBUG = true;
 
 extract($_GET, EXTR_PREFIX_ALL, "var");
 extract($_POST, EXTR_PREFIX_ALL, "var");
@@ -64,6 +66,7 @@ if ($db == NULL) die("No se pudo conectar con la base de datos");
 db_set_charset($db, "utf8");
 
 require_once("db_betscience.php");
+require_once("crypt.php");
 $error = 0;
 $data = array();
 
@@ -93,7 +96,7 @@ switch ($var_action) {
 		} else if (db_betscience_users_get_id($db, $var_usr) >= 0) {
 			// this user already exists in the table
 			$error = 10;
-		} else if (db_betscience_users_new($db, $var_usr, $var_pwd) == false) {
+		} else if (db_betscience_users_new($db, $var_usr, crypt_password($var_pwd)) == false) {
 			// error inserting the user in the table
 			$error = 20;
 		} else if (db_betscience_users_get_id($db, $var_usr) < 0) {
@@ -120,6 +123,27 @@ switch ($var_action) {
 				//		} else $error = 20;
 				//} else $error = 20;
 		break;
+	case "login":
+		if (!isset($var_usr)) {
+			// 'usr' param is mandatory
+			$error = 2;
+		} else if (!isset($var_pwd)) {
+			// 'pwd' param is mandatory
+			$error = 3;
+		} else if ((($pdo_s = db_betscience_users_get($db, $var_usr)) == false)||(db_get_rows($pdo_s) != 1)) {
+			// the user is not registered
+			$error = 11;
+		} else {
+			$data = $pdo_s->fetchAll();
+			$hash = $data[0]["pwd"];
+			// Hashing the password with its hash as the salt returns the same hash
+			if (crypt($var_pwd, $hash) == $hash) {
+				$error = 0;
+			} else {
+				$error = 12;
+			}
+		}
+		break;
 	default:
 		$error = 1;
 		break;
@@ -127,10 +151,14 @@ switch ($var_action) {
 
 /* Write response */
 require_once("xml.php");
-xml_set_content_type();
-xml_write_header();
-xml_write_tag_start("betscience");
-xml_write_tag_value("error", $error);
-xml_write_tag_end("betscience");
+if (!$DEBUG) {
+	xml_set_content_type();
+	xml_write_header();
+	xml_write_tag_start("betscience");
+	xml_write_tag_value("error", $error);
+	xml_write_tag_end("betscience");
+} else {
+	echo "error ".$error."<br>";
+}
 
 ?>

@@ -18,8 +18,8 @@ function db_query($db, $sql) {
 	return $db->query($sql);
 }
 
-function db_get_rows($result) {
-	return $result->rowCount();
+function db_get_rows($pdo_s) {
+	return $pdo_s->rowCount();
 }
 
 ?>
