@@ -153,6 +153,7 @@ if (!$DEBUG) {
 	xml_write_tag_end("betscience");
 } else {
 	echo "error ".$error."<br>";
+	var_dump($data);
 }
 
 ?>
