@@ -43,7 +43,7 @@ function db_betscience_teams_list($dbh, $id_league, $season) {
 }
 
 function db_betscience_stats_handball_total_pos($dbh, $id_team, $fields, $pos) {
-	$sql = "SELECT * FROM `stats_handball` WHERE `id.team.$pos`='$id_team'";
+	$sql = "SELECT * FROM `stats_handball` WHERE `id.team.$pos`='$id_team' AND `id.season`='0'";
 	$sth = $dbh->prepare($sql);
 	$sth->execute();
 
@@ -83,7 +83,7 @@ function stats_mean($home, $away) {
 }
 
 function db_betscience_stats_handball_total($dbh, $id_team) {
-	$fields = array("shots.total.accuracy", "turnovers.total", "steals.total", "goalk.total.accuracy", "shots.blocked.total");
+	$fields = array("total.accuracy", "turnovers.total", "steals", "goalk.total.accuracy", "blocks");
 	$stats_home = db_betscience_stats_handball_total_pos($dbh, $id_team, $fields, "home");
 	$stats_away = db_betscience_stats_handball_total_pos($dbh, $id_team, $fields, "away");
 	$stats = stats_mean($stats_home, $stats_away);
@@ -91,7 +91,33 @@ function db_betscience_stats_handball_total($dbh, $id_team) {
 	return $stats;
 }
 
-function db_betscience_stats_handball_get($dbh, $id_league, $id_season, $round_league, $id_team_home, $id_team_away) {
+function db_betscience_stats_handball_get_from_array($dbh, $array) {
+	$row = false;
+	if (is_array($array) && (count($array) > 0)) {
+		$first = true;
+		$sql = "SELECT * FROM `stats_handball` WHERE";
+		foreach($array as $key => $value) {
+			if ($first) $first = false;
+			else $sql .= " AND";
+			if (is_null($value)) {
+				$sql .= " `$key`=NULL";
+			} else {
+				$sql .= " `$key`='$value'";
+			}
+		}
+		$sql .= " LIMIT 1";
+		//var_dump($sql);
+		//echo "<br>";
+		$sth = $dbh->prepare($sql);
+		$sth->execute();
+		if ($sth->rowCount() == 1) {
+			$row = $sth->fetch(PDO::FETCH_ASSOC);
+		}
+	}
+	return $row;
+}
+
+function db_betscience_stats_handball_get_id($dbh, $id_league, $id_season, $round_league, $id_team_home, $id_team_away) {
 	$id = -1;
 	$sql = "SELECT `id.match` FROM `stats_handball` WHERE `id.league`='$id_league' AND `id.season`='$id_season' AND `round.league`='$round_league' AND `id.team.home`='$id_team_home' AND `id.team.away`='$id_team_away' LIMIT 1";
 	$sth = $dbh->prepare($sql);
@@ -101,6 +127,11 @@ function db_betscience_stats_handball_get($dbh, $id_league, $id_season, $round_l
 		$id = $row['id.match'];
 	}
 	return $id;
+}
+
+function db_betscience_stats_handball_get_from_id($dbh, $id) {
+	$row = db_betscience_stats_handball_get_from_array($dbh, array("id.match" => $id));
+	return $row;
 }
 
 function db_betscience_stats_handball_new($dbh, $id_league, $id_season, $year_season, $round_league, $id_team_home, $id_team_away) {
@@ -114,6 +145,7 @@ function db_betscience_stats_handball_update($dbh, $id, $label, $value) {
 }
 
 function db_betscience_stats_handball_update_array($dbh, $id, $array) {
+	$ret = false;
 	if (is_array($array) && (count($array) > 0)) {
 		$first = true;
 		$sql = "UPDATE `stats_handball` SET";

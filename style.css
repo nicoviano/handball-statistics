@@ -32,10 +32,12 @@ table.dev-table {
 
 td.row1	{ 
 	background-color : #DEE3E7; 
+	font-weight:bold;
+	height : 30px;
 }
 
 td.row2	{ 
-	background-color : #EFEFEF; 
+	background-color : #F8F8F8; 
 	height : 25px;
 }
 
