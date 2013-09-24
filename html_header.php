@@ -7,6 +7,7 @@
         <link href="css/bootstrap-responsive.min.css" rel="stylesheet">
 	<script type="text/javascript" src="js/jquery.js"></script>
         <script type="text/javascript" src="js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="js/admin.js"></script>
 
 </head>
 <body>

@@ -167,4 +167,9 @@ function db_betscience_stats_handball_update_array($dbh, $id, $array) {
 	return $ret;
 }
 
+function db_betscience_stats_handball_delete($dbh, $id) {
+	$sql = "DELETE FROM `stats_handball` WHERE `id.match`='$id' LIMIT 1";
+	return db_query($dbh, $sql);
+}
+
 ?>

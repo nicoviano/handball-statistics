@@ -29,28 +29,32 @@ function insert_button_match_info($row) {
 	$title_msg = common_get_html("Ver detalles");
 	$match_id = $row['id.match'];
 	$action = "?view=match_info&match_id=$match_id";
-	echo "<a class='btn btn-small' href='$action' title='$title_msg'><i class='icon-info-sign'></i></a>";
+	echo "<a class='btn btn-small btn-info' href='$action' title='$title_msg'><i class='icon-eye-open icon-white'></i></a>";
 }
 
-//function insert_edit_product($row) {
-//	$query_msg = common_get_html("¿Estás seguro de que quieres editar el producto con ID {$row['id']}?");
-//	$title_msg = common_get_html("Editar producto");
-//	$action = "?view=add_product";
-//	foreach ($row as $key => $value) {
-//		if (($key == "mac_from" || $key == "mac_to") && ($value == null)) {
-//			$value = "";
-//		}
-//		if (!is_numeric($key)) {
-//			$row["products_add_".$key] = $value;
-//		}
-//		unset($row[$key]);
-//	}
-//	$data = json_encode($row);
-//	$quotes_search = array("'", "\"");
-//	$quotes_replace = array("@@apos@@", "@@quot@@");
-//	$data2 = str_replace($quotes_search, $quotes_replace, $data);
-//	echo "<div class='icon16 link' onclick='queryUserForActionWithData(\"$query_msg\", \"$action\", \"$data2\");' title='$title_msg'><img src='img/pencil_16.png'></div>\n";
-//}
+function insert_button_match_delete($row) {
+	$title_msg = common_get_html("Eliminar");
+	$query_msg = common_get_html("¿Estás seguro de que quieres eliminar el partido ID={$row['id.match']}?");
+	$action = "?{$_SERVER['QUERY_STRING']}";
+	$key = "delete_id_match";
+	$value = $row['id.match'];
+	echo "<button class='btn btn-small btn-danger' onclick='queryUserForActionWithParam(\"$query_msg\", \"$action\", \"$key\", \"$value\");' title='$title_msg'><i class='icon-trash icon-white'></i></button>";
+
+	//foreach ($row as $key => $value) {
+	//	if (($key == "mac_from" || $key == "mac_to") && ($value == null)) {
+	//		$value = "";
+	//	}
+	//	if (!is_numeric($key)) {
+	//		$row["products_add_".$key] = $value;
+	//	}
+	//	unset($row[$key]);
+	//}
+	//$data = json_encode($row);
+	//$quotes_search = array("'", "\"");
+	//$quotes_replace = array("@@apos@@", "@@quot@@");
+	//$data2 = str_replace($quotes_search, $quotes_replace, $data);
+	//echo "<div class='icon16 link' onclick='queryUserForActionWithData(\"$query_msg\", \"$action\", \"$data2\");' title='$title_msg'><img src='img/pencil_16.png'></div>\n";
+}
 
 function include_table_header($class) {
 	echo "<table class='".$class."'> \n";
@@ -148,6 +152,7 @@ function include_stats_handball_row($row) {
 	echo "	<td class='row2'>" . $row['score.end.home']." - ".$row['score.end.away'] . "</td> \n";
 	echo "	<td class='row2'> \n";
 	insert_button_match_info($row);
+	insert_button_match_delete($row);
 	echo "  </td> \n";
 	echo "</tr> \n"; 
 }
@@ -176,7 +181,6 @@ function include_stats_handball_footer() {
 }
 
 function get_teams_data($dbh) {
-	require_once("db_betscience.php");
 	return db_betscience_teams_list($dbh, 0);
 }
 
@@ -290,7 +294,6 @@ function add_dependent_stats(&$stats) {
 
 
 function insert_match_new($dbh, $round_league, $time_date, $id_team_home, $id_team_away, $stats, $stats2) {
-	require_once("db_betscience.php");
 
 	// check params
 	$errors = check_match_new_form($round_league, $time_date, $id_team_home, $id_team_away);
@@ -382,6 +385,8 @@ $db = db_connect(DB_TYPE, DB_HOST, DB_NAME, DB_USERNAME, DB_PASSWORD);
 if ($db == NULL) die("No se pudo conectar con la base de datos");
 db_set_charset($db, "utf8");
 
+require_once('db_betscience.php');
+
 // check credentials to access the admin web page
 if (!is_session_authenticated() && $var_user != NULL && $var_password != NULL) {
 	$sql = "SELECT * FROM `webusers` WHERE `user`='$var_user' AND `password`='$var_password'";
@@ -408,6 +413,15 @@ if (!is_session_authenticated()) {
 			generate_table($db, $sql, $var_view);
 			break;
 		case "stats_handball":
+			if (isset($var_delete_id_match)) {
+				$id = $var_delete_id_match;
+				$result = db_betscience_stats_handball_delete($db, $id);
+				if ($result) {
+					showResult(true, "El partido ID='$id' ha sido eliminado de la base de datos");
+				} else {
+					showResult(false, "Error eliminando el partido ID='$id' de la base de datos");
+				}
+			}
 			$sql = "SELECT `s`.*, `t1`.`name.team` AS `name.team.home`, `t2`.`name.team` AS `name.team.away` FROM `$var_view` AS s LEFT JOIN `teams` as t1 ON `id.team.home`=`t1`.`id.team` LEFT JOIN `teams` as t2 ON `id.team.away`=`t2`.`id.team`";
 			generate_table($db, $sql, $var_view);
 			break;
